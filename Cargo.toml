@@ -1,0 +1,20 @@
+[package]
+name = "submit_to_images"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "submit_to_images_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+crossbeam-channel = "0.5.15"
+jpeg-encoder = { version = "0.7.0", features = ["simd"] }
+mupdf = { version = "0.6.0", default-features = false, features = ["img", "system-fonts", "font-kit"] }
+mupdf-sys = { version = "0.6.0", default-features = false, features = ["img"] }
+num_cpus = "1.17.0"
+parking_lot = "0.12.5"
+pyo3 = { version = "0.28.2", features = ["extension-module", "abi3-py310"] }
+
+[patch.crates-io]
+mupdf = { path = "vendor/mupdf-0.6.0" }

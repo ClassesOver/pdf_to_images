@@ -1,0 +1,11 @@
+/target
+/.venv
+/.mypy_cache
+/.pytest_cache
+/.pip-tmp
+/.python-packages
+/out_test_505234_async
+/out_test_505234_sync
+__pycache__/
+*.pyd
+*.so

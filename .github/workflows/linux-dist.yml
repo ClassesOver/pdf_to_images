@@ -1,0 +1,152 @@
+name: linux-dist
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/linux-dist.yml"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pyproject.toml"
+      - "README.md"
+      - "src/**"
+      - "python/**"
+      - "vendor/**"
+  push:
+    branches:
+      - main
+      - master
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux-dist:
+    runs-on: ubuntu-latest
+    container:
+      image: m.daocloud.io/docker.io/library/python:3.11-slim
+    defaults:
+      run:
+        shell: sh
+    env:
+      PYTHONUNBUFFERED: "1"
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      CARGO_TERM_COLOR: always
+      RUSTUP_HOME: /github/home/.rustup
+      CARGO_HOME: /github/home/.cargo
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          set -eux
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential \
+            clang \
+            cmake \
+            curl \
+            git \
+            libclang-dev \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            patchelf \
+            pkg-config
+          rm -rf /var/lib/apt/lists/*
+
+      - name: Install Rust
+        run: |
+          set -eux
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+          printf '%s\n' "${CARGO_HOME}/bin" >> "${GITHUB_PATH}"
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            /github/home/.cargo/registry
+            /github/home/.cargo/git
+            target
+          key: ${{ runner.os }}-linux-dist-py311-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'pyproject.toml', 'src/**', 'python/**', 'vendor/**', '.github/workflows/linux-dist.yml') }}
+          restore-keys: |
+            ${{ runner.os }}-linux-dist-py311-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'pyproject.toml') }}-
+            ${{ runner.os }}-linux-dist-py311-
+
+      - name: Install build tooling
+        run: |
+          set -eux
+          python -m pip install --upgrade pip maturin
+
+      - name: Show toolchain versions
+        run: |
+          set -eux
+          python --version
+          rustc --version
+          cargo --version
+          maturin --version
+
+      - name: Build wheel
+        run: |
+          set -eux
+          mkdir -p dist
+          maturin build --release --interpreter python --out dist
+
+      - name: Build sdist
+        run: |
+          set -eux
+          maturin sdist --out dist
+
+      - name: Smoke test wheel
+        run: |
+          set -eux
+          python -m venv .venv
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          python -m pip install dist/*.whl
+          python - <<'PY'
+          import tempfile
+          from pathlib import Path
+
+          from submit_to_images import PdfRenderQueue, RenderJob, supported_formats
+
+          pdf_path = Path("vendor/mupdf-0.6.0/tests/files/dummy.pdf").resolve()
+          output_dir = Path(tempfile.mkdtemp(prefix="submit_to_images_"))
+
+          queue = PdfRenderQueue(workers=2, capacity=32)
+          future = queue.submit_future(
+              RenderJob(
+                  pdf_path=str(pdf_path),
+                  output_dir=str(output_dir),
+                  render_dpi=96,
+                  format="jpg",
+                  quality=70,
+                  batch_pages=0,
+              )
+          )
+          result = future.result()
+          queue.close()
+
+          assert result.ok, result.errors
+          assert result.rendered_pages >= 1, result.rendered_pages
+          assert len(result.outputs) == result.rendered_pages, result.outputs
+          assert "jpg" in supported_formats(), supported_formats()
+          print(result.outputs[0])
+          PY
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-dist
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Publish GitHub release assets
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
