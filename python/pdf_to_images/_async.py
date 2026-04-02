@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import Iterable
 
-from .submit_to_images_native import PdfRenderQueue, RenderFuture, RenderJob
+from .pdf_to_images_native import PdfRenderQueue, RenderFuture, RenderJob
 
 AsyncRenderHandle = RenderFuture
 

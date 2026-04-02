@@ -16,7 +16,7 @@ use parking_lot::Mutex;
 use pyo3::exceptions::{PyRuntimeError, PyValueError};
 use pyo3::prelude::*;
 
-#[pyclass(module = "submit_to_images", frozen, get_all)]
+#[pyclass(module = "pdf_to_images", frozen, get_all)]
 #[derive(Clone)]
 struct RenderJob {
     pdf_path: String,
@@ -115,7 +115,7 @@ impl RenderJob {
     }
 }
 
-#[pyclass(module = "submit_to_images", frozen, get_all)]
+#[pyclass(module = "pdf_to_images", frozen, get_all)]
 #[derive(Clone)]
 struct RenderResult {
     job_id: u64,
@@ -127,7 +127,7 @@ struct RenderResult {
     errors: Vec<String>,
 }
 
-#[pyclass(module = "submit_to_images", frozen)]
+#[pyclass(module = "pdf_to_images", frozen)]
 struct RenderFuture {
     job_id: u64,
     future: Py<PyAny>,
@@ -168,7 +168,7 @@ impl RenderFuture {
     }
 }
 
-#[pyclass(module = "submit_to_images", frozen, get_all)]
+#[pyclass(module = "pdf_to_images", frozen, get_all)]
 struct QueueStats {
     workers: usize,
     capacity: usize,
@@ -183,7 +183,7 @@ struct PythonFutureListener {
     future: Py<PyAny>,
 }
 
-#[pyclass(module = "submit_to_images")]
+#[pyclass(module = "pdf_to_images")]
 struct PdfRenderQueue {
     inner: Arc<QueueInner>,
 }
@@ -285,7 +285,7 @@ fn render(
 }
 
 #[pymodule]
-fn submit_to_images_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
+fn pdf_to_images_native(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<RenderJob>()?;
     m.add_class::<RenderResult>()?;
     m.add_class::<RenderFuture>()?;

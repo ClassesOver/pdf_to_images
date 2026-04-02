@@ -1,9 +1,9 @@
 from ._async import AsyncPdfRenderQueue, AsyncRenderHandle, render_async, render_many_async
-from .submit_to_images_native import (
+from .pdf_to_images_native import (
     PdfRenderQueue,
     QueueStats,
-    RenderJob,
     RenderFuture,
+    RenderJob,
     RenderResult,
     recommended_workers,
     render,
@@ -15,8 +15,8 @@ __all__ = [
     "AsyncRenderHandle",
     "PdfRenderQueue",
     "QueueStats",
-    "RenderJob",
     "RenderFuture",
+    "RenderJob",
     "RenderResult",
     "recommended_workers",
     "render",

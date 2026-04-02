@@ -1,10 +1,10 @@
 [package]
-name = "submit_to_images"
+name = "pdf_to_images"
 version = "0.1.0"
 edition = "2024"
 
 [lib]
-name = "submit_to_images_native"
+name = "pdf_to_images_native"
 crate-type = ["cdylib"]
 
 [dependencies]

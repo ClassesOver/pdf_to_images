@@ -1,4 +1,4 @@
-# submit_to_images
+# pdf_to_images
 
 High-throughput PDF-to-image rendering with Rust + PyO3.
 
@@ -43,10 +43,20 @@ Important:
 - This image produces a regular `linux_x86_64` wheel bound to the container's glibc baseline.
 - If you need a broadly portable PyPI Linux wheel, switch the workflow to a `manylinux` image instead of `python:3.11-slim`.
 
+## GitHub Actions Windows Build
+
+The repository also includes a Windows build workflow at
+[`/.github/workflows/windows-dist.yml`](./.github/workflows/windows-dist.yml).
+
+- Build runner: `windows-2022`
+- Output: wheel uploaded as the `windows-dist` artifact
+- Release mode: tags matching `v*` also publish the wheel to the GitHub Release
+- Validation: the workflow installs the built wheel and runs the same smoke test against the vendored `dummy.pdf`
+
 ## Sync Example
 
 ```python
-from submit_to_images import PdfRenderQueue, RenderJob
+from pdf_to_images import PdfRenderQueue, RenderJob
 
 queue = PdfRenderQueue(workers=16, capacity=4096)
 
@@ -75,7 +85,7 @@ queue.close()
 ```python
 import asyncio
 
-from submit_to_images import PdfRenderQueue, RenderJob
+from pdf_to_images import PdfRenderQueue, RenderJob
 
 
 async def main() -> None:
@@ -102,7 +112,7 @@ asyncio.run(main())
 ## Native Future Example
 
 ```python
-from submit_to_images import PdfRenderQueue, RenderJob
+from pdf_to_images import PdfRenderQueue, RenderJob
 
 queue = PdfRenderQueue(workers=16, capacity=4096)
 
@@ -127,7 +137,7 @@ queue.close()
 ```python
 import asyncio
 
-from submit_to_images import AsyncPdfRenderQueue, RenderJob
+from pdf_to_images import AsyncPdfRenderQueue, RenderJob
 
 
 async def main() -> None:
