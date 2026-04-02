@@ -55,7 +55,9 @@ jobs:
             libfontconfig1-dev \
             libfreetype6-dev \
             patchelf \
-            pkg-config
+            pkg-config \
+            unzip \
+            zip
           rm -rf /var/lib/apt/lists/*
 
       - name: Install Rust
